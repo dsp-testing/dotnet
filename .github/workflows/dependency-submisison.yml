@@ -1,0 +1,94 @@
+run-name: Dependency Submission
+on: workflow_dispatch
+permissions:
+  contents: write
+# env:
+#   SKIP_CACHE: ${{ vars.GH_DEPENDENCY_SUBMISSION_SKIP_CACHE }}
+#   DOTNET_NOLOGO: true
+#   DOTNET_CLI_TELEMETRY_OPTOUT: true
+jobs:
+  submit-nuget:
+    # runs-on: ${{ github.event.inputs.runs-on }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.inputs.commit-ref }}
+
+
+      - name: setup-ecosystem
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+
+      - name: log-toolchain-versions
+        run: |
+          version=$(dotnet --version)
+          echo "::notice::Using .NET SDK version: $version"
+          dotnet --list-sdks
+        shell: bash
+
+      - name: check-cache-strategy
+        run: |
+          if [[ -n "${{ env.SKIP_CACHE }}" ]]; then
+            echo "NuGet cache disabled via 'GH_DEPENDENCY_SUBMISSION_SKIP_CACHE'"
+          else
+            echo "Caching NuGet packages. Set 'GH_DEPENDENCY_SUBMISSION_SKIP_CACHE=true' to skip caching in future."
+          fi
+
+      - name: configure-cache
+        if: ${{ !env.SKIP_CACHE }}
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.vbproj', '**/*.fsproj', '**/packages.config', '**/*.props', '**/*.targets') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: validate-project
+        id: validate-project
+        run: |
+          # Find all project files
+          project_files=$(find . -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) | grep -v '/obj/' | grep -v '/bin/' | head -20)
+
+          if [ -z "$project_files" ]; then
+            echo "valid-project=false" >> "$GITHUB_OUTPUT"
+            echo "### :warning: No .NET project files found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**This repository does not appear to contain any .NET project files.**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Searched for: *.csproj, *.vbproj, *.fsproj" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "If this is a .NET project, ensure your project files are committed to the repository." >> $GITHUB_STEP_SUMMARY
+            echo "::error::No .NET project files found in repository"
+            exit 1
+          fi
+
+          echo "Found project files:"
+          echo "$project_files"
+
+          # Try to restore the first project to validate
+          first_project=$(echo "$project_files" | head -1)
+          echo "Validating project: $first_project"
+
+          if dotnet restore "$first_project"; then
+            echo "::debug::Project restore successful"
+            echo "valid-project=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::debug::Project restore failed"
+            echo "valid-project=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Validation failed for project: $first_project"
+            exit 1
+          fi
+
+      - name: submit-dependency-snapshot
+        uses: advanced-security/component-detection-dependency-submission-action@v0.0.6
+        with: 
+          detectorArgs: "DetectorCategories=NuGet"
