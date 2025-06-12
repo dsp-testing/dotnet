@@ -91,4 +91,5 @@ jobs:
 
       - name: submit-dependency-snapshot
         uses: advanced-security/component-detection-dependency-submission-action@4f5a06217da80503a4cb123c834d32c263ea1d43
+        with:
           detectorsCategories: NuGet
