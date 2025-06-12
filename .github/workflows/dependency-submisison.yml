@@ -91,5 +91,5 @@ jobs:
 
       - name: submit-dependency-snapshot
         uses: advanced-security/component-detection-dependency-submission-action@v0.0.6
-        with: 
-          detectorArgs: "DetectorCategories=NuGet"
+        with:
+          detector-args: --detectors NuGet,NuGetPackagesConfig,NuGetProjectCentric
