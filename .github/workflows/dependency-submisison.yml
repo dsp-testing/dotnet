@@ -75,19 +75,18 @@ jobs:
           echo "Found project files:"
           echo "$project_files"
 
-          # Try to restore the first project to validate
-          first_project=$(echo "$project_files" | head -1)
-          echo "Validating project: $first_project"
+          # Restore all projects
+          while IFS= read -r project; do
+            echo "Restoring project: $project"
+            if ! dotnet restore "$project"; then
+              echo "::error::Failed to restore project: $project"
+              echo "valid-project=false" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+          done <<< "$project_files"
 
-          if dotnet restore "$first_project"; then
-            echo "::debug::Project restore successful"
-            echo "valid-project=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::debug::Project restore failed"
-            echo "valid-project=false" >> "$GITHUB_OUTPUT"
-            echo "::error::Validation failed for project: $first_project"
-            exit 1
-          fi
+          echo "::debug::All projects restored successfully"
+          echo "valid-project=true" >> "$GITHUB_OUTPUT"
 
       - name: submit-dependency-snapshot
         uses: advanced-security/component-detection-dependency-submission-action@4f5a06217da80503a4cb123c834d32c263ea1d43
