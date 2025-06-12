@@ -90,6 +90,6 @@ jobs:
           fi
 
       - name: submit-dependency-snapshot
-        uses: advanced-security/component-detection-dependency-submission-action@v0.0.6
+        uses: actions/component-detection-dependency-submission-action@d709d8ec819687fc7a418581a0b5dcecd0ea9b77
         with:
-          detector-args: --detectors NuGet,NuGetPackagesConfig,NuGetProjectCentric
+          detectorsCategories: NuGet
