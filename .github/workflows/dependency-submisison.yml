@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f # v4.2.1
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.vbproj', '**/*.fsproj', '**/packages.config', '**/*.props', '**/*.targets') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln', '**/packages.config', '**/*.props', '**/*.targets') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -57,7 +57,7 @@ jobs:
         id: validate-project
         run: |
           # Find all project files
-          project_files=$(find . -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) | grep -v '/obj/' | grep -v '/bin/' | head -20)
+          project_files=$(find . -type f \( -name "*.csproj" -o -name "*.sln" \) | grep -v '/obj/' | grep -v '/bin/' | head -20)
 
           if [ -z "$project_files" ]; then
             echo "valid-project=false" >> "$GITHUB_OUTPUT"
@@ -65,7 +65,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**This repository does not appear to contain any .NET project files.**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Searched for: *.csproj, *.vbproj, *.fsproj" >> $GITHUB_STEP_SUMMARY
+            echo "Searched for: *.csproj, *.sln" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "If this is a .NET project, ensure your project files are committed to the repository." >> $GITHUB_STEP_SUMMARY
             echo "::error::No .NET project files found in repository"
