@@ -90,6 +90,5 @@ jobs:
           fi
 
       - name: submit-dependency-snapshot
-        uses: actions/component-detection-dependency-submission-action@d709d8ec819687fc7a418581a0b5dcecd0ea9b77
-        with:
-          detectorsCategories: NuGet,Python,Npm
+        uses: advanced-security/component-detection-dependency-submission-action@4f5a06217da80503a4cb123c834d32c263ea1d43
+          detectorsCategories: NuGet
