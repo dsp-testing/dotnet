@@ -9,7 +9,7 @@
     "@microsoft/signalr-protocol-msgpack": "*"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.3",
+    "@babel/core": "^7.29.13",
     "@babel/preset-env": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
     "@types/debug": "0.0.30",
