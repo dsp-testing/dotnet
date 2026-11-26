@@ -20,7 +20,7 @@
     "build:production": "rollup -c --environment production --forceExit"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.6",
+    "@babel/core": "^7.29.13",
     "@babel/preset-env": "^7.23.6",
     "@babel/preset-typescript": "^7.23.3",
     "@microsoft/dotnet-js-interop": "*",
